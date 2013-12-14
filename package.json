@@ -1,0 +1,30 @@
+{
+  "name": "ld28",
+  "version": "0.0.0",
+  "author": "Ian Lollar",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "postinstall": "grunt build"
+  },
+  "dependencies": {
+    "express": "3.4.0",
+    "jade": "0.35.0",
+    "grunt-cli": "0.1.9",
+    "grunt-contrib-watch": "0.5.3",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-browserify": "~1.2.11",
+    "grunt-contrib-stylus": "~0.10.0",
+    "grunt-contrib-copy": "~0.4.1",
+    "tiny-lr": "0.0.4",
+    "browserify": "~2.35.2",
+    "coffeeify": "~0.5.2"
+  },
+  "engines": {
+    "node": ">= 0.10.x",
+    "npm": ">= 1.3.x"
+  },
+  "devDependencies": {
+    "rimraf": "2.2.2"
+  }
+}

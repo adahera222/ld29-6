@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -e
+
+echo ''
+echo 'Boostraping LD28...'
+
+node --version >/dev/null 2>&1 || { echo >&2 "\nIt looks like Node.js isn't installed. You're going to need it: brew install node\n"; exit 1; }
+nodemon --version >/dev/null 2>&1 || { echo >&2 "\nInstalling nodemon...\n"; npm install -g nodemon; }
+grunt --version >/dev/null 2>&1 || { echo >&2 "\nInstalling Grunt...\n"; npm install -g grunt-cli; }
+coffee --version >/dev/null 2>&1 || { echo >&2 "\nInstalling CoffeeScript...\n"; npm install -g coffee-script; }
+
+npm install
+
+echo ''
+echo 'The boots have been strapped!'
