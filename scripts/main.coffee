@@ -25,6 +25,7 @@ class Main
 
     @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
     @player.anchor.setTo(0.5, 0.5)
+    @player.body.immovable = true
     @player.body.collideWorldBounds = true
 
     @blackBoxes = @game.add.group()
@@ -57,6 +58,15 @@ class Main
     , @)
 
     @currentBoxesVelocity -= @boxesAcceleration if @currentBoxesVelocity > -@maxBoxesVelocity
+
+    @game.physics.collide(@player, @blackBoxes, @blackBoxCollide, null, @)
+    @game.physics.collide(@player, @whiteBoxes, @whiteBoxCollide, null, @)
+
+  blackBoxCollide: (collider, collidee) =>
+    collidee.kill()
+
+  whiteBoxCollide: (collider, collidee) =>
+    collidee.kill()
 
   addBox: =>
     rand = Math.floor(Math.random() * 2)
