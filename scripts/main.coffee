@@ -2,8 +2,9 @@ class Main
   initialize: =>
     Math.seedrandom('12345')
 
-    @blockTimer = 0
+    @blocksTimer = 0
     @currentBlocksVelocity = 0
+    @blocksFrequency = @currentBlocksVelocity
     @maxBlocksVelocity = 1000
     @blocksAccelerationIncrement = 10
     @currentBlocksAcceleration = @blocksAccelerationIncrement
@@ -64,8 +65,9 @@ class Main
     else if (@rightKey.isDown)
       @player.x += horPor
 
-    if (@game.time.now > @blockTimer)
-      @addBlock()
+    if @blocksFrequency > 0
+      if (@game.time.now > @blocksTimer)
+        @addBlock()
 
     @blackBlocks.forEachAlive( (block) =>
       block.body.velocity.y = @currentBlocksVelocity
@@ -79,6 +81,8 @@ class Main
       @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
 
     @totalDistance += @currentBlocksVelocity * -1
+
+    @blocksFrequency = 1500 - -@currentBlocksVelocity
 
     if !@player.touching
       @collided = false
@@ -106,6 +110,7 @@ class Main
   playerCollide: =>
     @collided = true
     @currentBlocksVelocity = 0
+    @blocksFrequency = 0
     @currentBlocksAcceleration = @blocksAccelerationIncrement
 
   addBlock: =>
@@ -125,7 +130,7 @@ class Main
           block.kill()
       , @)
 
-    @blockTimer = @game.time.now + 500
+    @blocksTimer = @game.time.now + @blocksFrequency
 
   resize: =>
     width = $(window).width()
