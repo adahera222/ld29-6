@@ -8,7 +8,7 @@ class Main
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
 
   preload: =>
-    @game.load.image('player', 'assets/images/player.png')
+    @game.load.image('white_player', 'assets/images/white_player.png')
     @game.load.image('black_box', 'assets/images/black_box.png')
     @game.load.image('white_box', 'assets/images/white_box.png')
 
@@ -24,6 +24,7 @@ class Main
     @rightKey = @game.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
 
     @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
+    @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'white_player')
     @player.anchor.setTo(0.5, 0.5)
     @player.body.immovable = true
     @player.body.collideWorldBounds = true
