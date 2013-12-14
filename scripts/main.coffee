@@ -2,10 +2,10 @@ class Main
   initialize: =>
     Math.seedrandom('12345')
 
-    @boxTimer = 0
-    @currentBoxesVelocity = 0
-    @maxBoxesVelocity = 1200
-    @boxesAcceleration = 10
+    @blockTimer = 0
+    @currentBlocksVelocity = 0
+    @maxBlocksVelocity = 1200
+    @blocksAcceleration = 10
     @currentColor = 'white'
     @collided = false
 
@@ -14,8 +14,8 @@ class Main
   preload: =>
     @game.load.image('black_player', 'assets/images/black_player.png')
     @game.load.image('white_player', 'assets/images/white_player.png')
-    @game.load.image('black_box', 'assets/images/black_box.png')
-    @game.load.image('white_box', 'assets/images/white_box.png')
+    @game.load.image('black_block', 'assets/images/black_block.png')
+    @game.load.image('white_block', 'assets/images/white_block.png')
 
   create: =>
     @game.stage.backgroundColor = '#999999'
@@ -36,15 +36,15 @@ class Main
 
     @spaceKey.onDown.add(@switchColors, @)
 
-    @blackBoxes = @game.add.group()
-    @blackBoxes.createMultiple(30, 'black_box')
-    @blackBoxes.setAll('anchor.x', 0.5)
-    @blackBoxes.setAll('anchor.y', 0.5)
+    @blackBlocks = @game.add.group()
+    @blackBlocks.createMultiple(30, 'black_block')
+    @blackBlocks.setAll('anchor.x', 0.5)
+    @blackBlocks.setAll('anchor.y', 0.5)
 
-    @whiteBoxes = @game.add.group()
-    @whiteBoxes.createMultiple(30, 'white_box')
-    @whiteBoxes.setAll('anchor.x', 0.5)
-    @whiteBoxes.setAll('anchor.y', 0.5)
+    @whiteBlocks = @game.add.group()
+    @whiteBlocks.createMultiple(30, 'white_block')
+    @whiteBlocks.setAll('anchor.x', 0.5)
+    @whiteBlocks.setAll('anchor.y', 0.5)
 
   switchColors: =>
     if @currentColor is 'white'
@@ -62,58 +62,58 @@ class Main
     else if (@rightKey.isDown)
       @player.x += horPor
 
-    if (@game.time.now > @boxTimer)
-      @addBox()
+    if (@game.time.now > @blockTimer)
+      @addBlock()
 
-    @blackBoxes.forEachAlive( (box) =>
-      box.body.velocity.y = @currentBoxesVelocity
+    @blackBlocks.forEachAlive( (block) =>
+      block.body.velocity.y = @currentBlocksVelocity
     , @)
 
-    @whiteBoxes.forEachAlive( (box) =>
-      box.body.velocity.y = @currentBoxesVelocity
+    @whiteBlocks.forEachAlive( (block) =>
+      block.body.velocity.y = @currentBlocksVelocity
     , @)
 
     if !@collided
-      @currentBoxesVelocity -= @boxesAcceleration if @currentBoxesVelocity > -@maxBoxesVelocity
+      @currentBlocksVelocity -= @blocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
 
     if !@player.touching
       @collided = false
 
-    @game.physics.collide(@player, @blackBoxes, @blackBoxCollide, null, @)
-    @game.physics.collide(@player, @whiteBoxes, @whiteBoxCollide, null, @)
+    @game.physics.collide(@player, @blackBlocks, @blackBlockCollide, null, @)
+    @game.physics.collide(@player, @whiteBlocks, @whiteBlockCollide, null, @)
 
-  blackBoxCollide: (collider, collidee) =>
+  blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
       collidee.kill()
     else
       @collided = true
-      @currentBoxesVelocity = 0
+      @currentBlocksVelocity = 0
 
-  whiteBoxCollide: (collider, collidee) =>
+  whiteBlockCollide: (collider, collidee) =>
     if @currentColor is 'white'
       collidee.kill()
     else
       @collided = true
-      @currentBoxesVelocity = 0
+      @currentBlocksVelocity = 0
 
-  addBox: =>
+  addBlock: =>
     rand = Math.floor(Math.random() * 2)
 
     if rand is 0
-      box = @blackBoxes.getFirstExists(false)
+      block = @blackBlocks.getFirstExists(false)
     else
-      box = @whiteBoxes.getFirstExists(false)
+      block = @whiteBlocks.getFirstExists(false)
 
-    if (box)
-      box.reset(Math.random() * @game.world.width, @game.world.height + 50)
-      box.body.velocity.y = @currentBoxesVelocity
-      box.revive()
-      box.events.onOutOfBounds.add( =>
-        if box.y < 0
-          box.kill()
+    if (block)
+      block.reset(Math.random() * @game.world.width, @game.world.height + 50)
+      block.body.velocity.y = @currentBlocksVelocity
+      block.revive()
+      block.events.onOutOfBounds.add( =>
+        if block.y < 0
+          block.kill()
       , @)
 
-    @boxTimer = @game.time.now + 500
+    @blockTimer = @game.time.now + 500
 
   resize: =>
     width = $(window).width()
