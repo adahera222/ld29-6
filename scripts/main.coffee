@@ -2,6 +2,8 @@ class Main
   initialize: =>
     Math.seedrandom('12345')
 
+    socket = io.connect('/')
+
     @blocksTimer = 0
     @currentBlocksVelocity = 0
     @blocksFrequency = @currentBlocksVelocity

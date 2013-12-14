@@ -1,6 +1,7 @@
 var express = require('express');
-
 var app = express();
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
 
 if (process.env.GATE && process.env.GATE === 'true') {
   if ((process.env.USERNAME && process.env.USERNAME !== '') && (process.env.PASSWORD && process.env.PASSWORD !== '')) {
@@ -39,5 +40,9 @@ app.get('/*', function(req, res, next) {
   res.render('index', data);
 });
 
-app.listen(app.get('port'));
+io.sockets.on('connection', function (socket) {
+
+});
+
+server.listen(app.get('port'));
 console.log("Node.js server is taking the express line on port %d in %s mode.", app.get('port'), app.settings.env);

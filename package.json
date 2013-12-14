@@ -18,7 +18,8 @@
     "grunt-contrib-copy": "~0.4.1",
     "tiny-lr": "0.0.4",
     "browserify": "~2.35.2",
-    "coffeeify": "~0.5.2"
+    "coffeeify": "~0.5.2",
+    "socket.io": "0.9.16"
   },
   "engines": {
     "node": ">= 0.10.x",
