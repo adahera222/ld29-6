@@ -6,12 +6,26 @@ class Main
 
 
   create: =>
-    @game.stage.scaleMode = Phaser.StageScaleMode.EXACT_FIT;
-    @game.stage.scale.setShowAll();
-    @game.stage.scale.refresh();
+    $(window).resize =>
+      @resize()
+
+    @resize()
 
   update: =>
 
+  resize: =>
+    width = $(window).width()
+    height = $(window).height()
+
+    @game.width = width
+    @game.height = height
+    @game.world.width = width
+    @game.world.height = height
+    @game.stage.bounds.width = width
+    @game.stage.bounds.height = height
+
+    if @game.renderType is Phaser.WEBGL
+      @game.renderer.resize(width, height)
 
 $(document).ready ->
   @main = new Main()
