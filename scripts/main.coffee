@@ -9,7 +9,8 @@ class Main
 
   preload: =>
     @game.load.image('player', 'assets/images/player.png')
-    @game.load.image('box', 'assets/images/box.png')
+    @game.load.image('black_box', 'assets/images/black_box.png')
+    @game.load.image('white_box', 'assets/images/white_box.png')
 
   create: =>
     @game.stage.backgroundColor = '#999999'
@@ -26,13 +27,15 @@ class Main
     @player.anchor.setTo(0.5, 0.5)
     @player.body.collideWorldBounds = true
 
-    @boxes = @game.add.group()
-    @boxes.createMultiple(30, 'box')
+    @blackBoxes = @game.add.group()
+    @blackBoxes.createMultiple(30, 'black_box')
+    @blackBoxes.setAll('anchor.x', 0.5)
+    @blackBoxes.setAll('anchor.y', 0.5)
 
-    for i in [0...30]
-      @boxes.create(@game.world.centerX, @game.world.height + 50, 'box')
-    @boxes.setAll('anchor.x', 0.5)
-    @boxes.setAll('anchor.y', 0.5)
+    @whiteBoxes = @game.add.group()
+    @whiteBoxes.createMultiple(30, 'white_box')
+    @whiteBoxes.setAll('anchor.x', 0.5)
+    @whiteBoxes.setAll('anchor.y', 0.5)
 
   update: =>
     horPor = @game.world.width / 50
@@ -45,14 +48,23 @@ class Main
     if (@game.time.now > @boxTimer)
       @addBox()
 
-    @boxes.forEachAlive( (box) =>
+    @blackBoxes.forEachAlive( (box) =>
+      box.body.velocity.y = @currentBoxesVelocity
+    , @)
+
+    @whiteBoxes.forEachAlive( (box) =>
       box.body.velocity.y = @currentBoxesVelocity
     , @)
 
     @currentBoxesVelocity -= @boxesAcceleration if @currentBoxesVelocity > -@maxBoxesVelocity
 
   addBox: =>
-    box = @boxes.getFirstExists(false);
+    rand = Math.floor(Math.random() * 2)
+
+    if rand is 0
+      box = @blackBoxes.getFirstExists(false)
+    else
+      box = @whiteBoxes.getFirstExists(false)
 
     if (box)
       box.reset(Math.random() * @game.world.width, @game.world.height + 50)
