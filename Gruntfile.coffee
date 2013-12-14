@@ -7,6 +7,7 @@ module.exports = (grunt) ->
     concat:
       dist:
         src: [
+          './scripts/vendor/seedrandom/seedrandom.min.js'
           './scripts/vendor/jquery/jquery.min.js'
           './scripts/vendor/phaser/phaser.min.js'
         ]

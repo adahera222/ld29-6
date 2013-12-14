@@ -1,5 +1,7 @@
 class Main
   initialize: =>
+    Math.seedrandom('12345')
+
     @boxTimer = 0
     @currentBoxesVelocity = 0
     @maxBoxesVelocity = 1200
