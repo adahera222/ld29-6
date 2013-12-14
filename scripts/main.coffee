@@ -4,10 +4,12 @@ class Main
     @currentBoxesVelocity = 0
     @maxBoxesVelocity = 1200
     @boxesAcceleration = 10
+    @currentColor = 'white'
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
 
   preload: =>
+    @game.load.image('black_player', 'assets/images/black_player.png')
     @game.load.image('white_player', 'assets/images/white_player.png')
     @game.load.image('black_box', 'assets/images/black_box.png')
     @game.load.image('white_box', 'assets/images/white_box.png')
@@ -22,12 +24,14 @@ class Main
 
     @leftKey = @game.input.keyboard.addKey(Phaser.Keyboard.LEFT)
     @rightKey = @game.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
+    @spaceKey = @game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
 
-    @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
     @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'white_player')
     @player.anchor.setTo(0.5, 0.5)
     @player.body.immovable = true
     @player.body.collideWorldBounds = true
+
+    @spaceKey.onDown.add(@switchColors, @)
 
     @blackBoxes = @game.add.group()
     @blackBoxes.createMultiple(30, 'black_box')
@@ -38,6 +42,14 @@ class Main
     @whiteBoxes.createMultiple(30, 'white_box')
     @whiteBoxes.setAll('anchor.x', 0.5)
     @whiteBoxes.setAll('anchor.y', 0.5)
+
+  switchColors: =>
+    if @currentColor is 'white'
+      @currentColor = 'black'
+      @player.loadTexture('black_player', 0)
+    else
+      @currentColor = 'white'
+      @player.loadTexture('white_player', 0)
 
   update: =>
     horPor = @game.world.width / 50
