@@ -12,6 +12,8 @@ class Main
     @game.load.image('box', 'assets/images/box.png')
 
   create: =>
+    @game.stage.backgroundColor = '#999999'
+
     $(window).resize =>
       @resize()
 
