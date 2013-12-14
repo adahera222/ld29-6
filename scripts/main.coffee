@@ -5,6 +5,7 @@ class Main
     @maxBoxesVelocity = 1200
     @boxesAcceleration = 10
     @currentColor = 'white'
+    @collided = false
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
 
@@ -70,16 +71,28 @@ class Main
       box.body.velocity.y = @currentBoxesVelocity
     , @)
 
-    @currentBoxesVelocity -= @boxesAcceleration if @currentBoxesVelocity > -@maxBoxesVelocity
+    if !@collided
+      @currentBoxesVelocity -= @boxesAcceleration if @currentBoxesVelocity > -@maxBoxesVelocity
+
+    if !@player.touching
+      @collided = false
 
     @game.physics.collide(@player, @blackBoxes, @blackBoxCollide, null, @)
     @game.physics.collide(@player, @whiteBoxes, @whiteBoxCollide, null, @)
 
   blackBoxCollide: (collider, collidee) =>
-    collidee.kill()
+    if @currentColor is 'black'
+      collidee.kill()
+    else
+      @collided = true
+      @currentBoxesVelocity = 0
 
   whiteBoxCollide: (collider, collidee) =>
-    collidee.kill()
+    if @currentColor is 'white'
+      collidee.kill()
+    else
+      @collided = true
+      @currentBoxesVelocity = 0
 
   addBox: =>
     rand = Math.floor(Math.random() * 2)
