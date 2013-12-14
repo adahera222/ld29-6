@@ -9,6 +9,7 @@ class Main
     @currentBlocksAcceleration = @blocksAccelerationIncrement
     @currentColor = 'white'
     @collided = false
+    @totalDistance = 0
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
 
@@ -76,6 +77,8 @@ class Main
 
     if !@collided
       @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
+
+    @totalDistance += @currentBlocksVelocity * -1
 
     if !@player.touching
       @collided = false
