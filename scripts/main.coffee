@@ -127,6 +127,7 @@ class Main
 
     if (block)
       block.reset(Math.random() * @game.world.width, @game.world.height + 50)
+      block.width = Math.random() * (@game.world.width / 2)
       block.body.velocity.y = @currentBlocksVelocity
       block.revive()
       block.events.onOutOfBounds.add( =>
