@@ -10,6 +10,7 @@ class Main
     @currentBlocksAcceleration = @blocksAccelerationIncrement
     @currentColor = 'white'
     @collided = false
+    @collideTimer = 0
     @totalDistance = 0
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
@@ -30,44 +31,43 @@ class Main
 
     @leftKey = @game.input.keyboard.addKey(Phaser.Keyboard.LEFT)
     @rightKey = @game.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
-    @spaceKey = @game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR)
 
-    @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'white_player')
-    @player.anchor.setTo(0.5, 0.5)
-    @player.body.immovable = true
-    @player.body.collideWorldBounds = true
-
-    @spaceKey.onDown.add(@switchColors, @)
+    @game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR).onDown.add(@switchColors, @)
 
     @blackBlocks = @game.add.group()
     @blackBlocks.createMultiple(30, 'black_block')
     @blackBlocks.setAll('anchor.x', 0.5)
-    @blackBlocks.setAll('anchor.y', 0.5)
+    @blackBlocks.setAll('anchor.y', 0)
+    @blackBlocks.setAll('body.immovable', true)
 
     @whiteBlocks = @game.add.group()
     @whiteBlocks.createMultiple(30, 'white_block')
     @whiteBlocks.setAll('anchor.x', 0.5)
-    @whiteBlocks.setAll('anchor.y', 0.5)
+    @whiteBlocks.setAll('anchor.y', 0)
+    @whiteBlocks.setAll('body.immovable', true)
 
-  switchColors: =>
-    if @currentColor is 'white'
-      @currentColor = 'black'
-      @player.loadTexture('black_player', 0)
-    else
-      @currentColor = 'white'
-      @player.loadTexture('white_player', 0)
+    @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'white_player')
+    @player.anchor.setTo(0.5, 1)
+    @player.body.customSeparateX = true
+    @player.body.customSeparateY = true
 
   update: =>
     horPor = @game.world.width / 50
 
-    if (@leftKey.isDown)
-      @player.x -= horPor
-    else if (@rightKey.isDown)
-      @player.x += horPor
+    if @collided
+      if @game.time.now > @collideTimer
+        @collided = false
+    else
+      if (@leftKey.isDown)
+        @player.x -= horPor
+      else if (@rightKey.isDown)
+        @player.x += horPor
 
-    if @blocksFrequency > 0
-      if (@game.time.now > @blocksTimer)
-        @addBlock()
+      if @blocksFrequency > 0
+        if @game.time.now > @blocksTimer
+          @addBlock()
+
+      @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
 
     @blackBlocks.forEachAlive( (block) =>
       block.body.velocity.y = @currentBlocksVelocity
@@ -77,38 +77,42 @@ class Main
       block.body.velocity.y = @currentBlocksVelocity
     , @)
 
-    if !@collided
-      @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
-
     @totalDistance += @currentBlocksVelocity * -1
 
     @blocksFrequency = 1500 - -@currentBlocksVelocity
 
-    if !@player.touching
-      @collided = false
-
     @game.physics.collide(@player, @blackBlocks, @blackBlockCollide, null, @)
     @game.physics.collide(@player, @whiteBlocks, @whiteBlockCollide, null, @)
+
+  switchColors: =>
+    if !@collided
+      if @currentColor is 'white'
+        @currentColor = 'black'
+        @player.loadTexture('black_player', 0)
+      else
+        @currentColor = 'white'
+        @player.loadTexture('white_player', 0)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
       @explodeBlock collidee
     else
-      @playerCollide()
+      @playerCollide collidee
 
   whiteBlockCollide: (collider, collidee) =>
     if @currentColor is 'white'
       @explodeBlock collidee
     else
-      @playerCollide()
+      @playerCollide collidee
 
   explodeBlock: (block) =>
     block.kill()
     @currentBlocksAcceleration += @blocksAccelerationIncrement
     @currentBlocksVelocity -= @currentBlocksAcceleration
 
-  playerCollide: =>
+  playerCollide: (block) =>
     @collided = true
+    @collideTimer = @game.time.now + 2000
     @currentBlocksVelocity = 0
     @blocksFrequency = 0
     @currentBlocksAcceleration = @blocksAccelerationIncrement
