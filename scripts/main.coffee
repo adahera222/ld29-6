@@ -4,8 +4,9 @@ class Main
 
     @blockTimer = 0
     @currentBlocksVelocity = 0
-    @maxBlocksVelocity = 1200
-    @blocksAcceleration = 10
+    @maxBlocksVelocity = 1000
+    @blocksAccelerationIncrement = 10
+    @currentBlocksAcceleration = @blocksAccelerationIncrement
     @currentColor = 'white'
     @collided = false
 
@@ -74,7 +75,7 @@ class Main
     , @)
 
     if !@collided
-      @currentBlocksVelocity -= @blocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
+      @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
 
     if !@player.touching
       @collided = false
@@ -84,17 +85,25 @@ class Main
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
-      collidee.kill()
+      @explodeBlock collidee
     else
-      @collided = true
-      @currentBlocksVelocity = 0
+      @playerCollide()
 
   whiteBlockCollide: (collider, collidee) =>
     if @currentColor is 'white'
-      collidee.kill()
+      @explodeBlock collidee
     else
-      @collided = true
-      @currentBlocksVelocity = 0
+      @playerCollide()
+
+  explodeBlock: (block) =>
+    block.kill()
+    @currentBlocksAcceleration += @blocksAccelerationIncrement
+    @currentBlocksVelocity -= @currentBlocksAcceleration
+
+  playerCollide: =>
+    @collided = true
+    @currentBlocksVelocity = 0
+    @currentBlocksAcceleration = @blocksAccelerationIncrement
 
   addBlock: =>
     rand = Math.floor(Math.random() * 2)
