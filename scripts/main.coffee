@@ -6,7 +6,9 @@ class Main
 
 
   create: =>
-
+    @game.stage.scaleMode = Phaser.StageScaleMode.EXACT_FIT;
+    @game.stage.scale.setShowAll();
+    @game.stage.scale.refresh();
 
   update: =>
 
