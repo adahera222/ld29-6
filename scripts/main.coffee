@@ -22,6 +22,7 @@ class Main
     @game.load.image('white_block', 'assets/images/white_block.png')
 
   create: =>
+    @game.stage.disableVisibilityChange = true
     @game.stage.backgroundColor = '#999999'
 
     $(window).resize =>
