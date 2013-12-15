@@ -135,6 +135,7 @@ class Main
     @player.animations.add('collide_black', [42...44])
     @player.animations.add('collide_white', [44...46])
     @player.anchor.setTo(0.5, .5)
+    @player.body.collideWorldBounds = true
     @player.body.customSeparateX = true
     @player.body.customSeparateY = true
     @player.animations.play('center_white', 15, true)
@@ -186,10 +187,10 @@ class Main
     if !@collided
       if @currentColor is 'white'
         @currentColor = 'black'
-        @player.animations.play('switch_to_black', 15, false)
+        @player.animations.play('switch_to_black', 30, false)
       else
         @currentColor = 'white'
-        @player.animations.play('switch_to_white', 15, false)
+        @player.animations.play('switch_to_white', 30, false)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
@@ -264,6 +265,10 @@ class Main
 
     if @game.renderType is Phaser.WEBGL
       @game.renderer.resize(width, height)
+
+    if @player
+      @player.x = @game.world.centerX
+      @player.y = @game.world.height / 4
 
 $(document).ready ->
   main = new Main()
