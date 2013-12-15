@@ -40,6 +40,7 @@ app.get('/*', function(req, res, next) {
   res.render('index', data);
 });
 
+var game = {};
 var players = {};
 var referee = {};
 
@@ -49,12 +50,11 @@ io.sockets.on('connection', function(socket) {
       socket.emit('nameTaken');
     }
     else {
-      players[playerName] = playerName;
+      players[playerName] = {name:playerName, socket:socket};
       socket.playerName = playerName;
-      socket.emit('start', {seed: Math.random() * 999999999});
 
       if (referee.socket) {
-        referee.socket.emit('players', {players:players});
+        referee.socket.emit('players', {players:parsePlayers()});
       }
     }
   });
@@ -66,26 +66,59 @@ io.sockets.on('connection', function(socket) {
         referee = {};
       }
 
+      socket.referee = true;
       referee.socket = socket;
       referee.token = Math.random() * 999999999;
       socket.emit('token', {token: referee.token});
+      startGame();
     }
   });
 
   socket.on('getPlayers', function(token) {
     if (token === referee.token) {
-      socket.emit('players', {players: players});
+      socket.emit('players', {players: parsePlayers()});
+    }
+  });
+
+  socket.on('startGame', function(token) {
+    if (token === referee.token) {
+      startGame();
     }
   });
 
   socket.on('disconnect', function() {
-    delete players[socket.playerName];
+    if (socket.referee) {
+      referee = {};
+    }
+    else {
+      delete players[socket.playerName];
 
-    if (referee.socket) {
-      referee.socket.emit('players', {players:players});
+      if (referee.socket) {
+        referee.socket.emit('players', {players:parsePlayers()});
+      }
     }
   });
 });
+
+function parsePlayers() {
+  var parsedPlayers = {};
+  for (var playerName in players) {
+    var player = players[playerName];
+    var parsedPlayer = {name: player.name};
+    parsedPlayers[playerName] = parsedPlayer;
+  }
+  return parsedPlayers;
+}
+
+function startGame() {
+  game = {}
+  game.seed = Math.random() * 999999999;
+  game.startTime = Math.floor((new Date).getTime()/1000);
+  for (var playerName in players) {
+    var player = players[playerName];
+    player.socket.emit('startGame', {seed: game.seed});
+  }
+}
 
 server.listen(app.get('port'));
 console.log("Node.js server is taking the express line on port %d in %s mode.", app.get('port'), app.settings.env);

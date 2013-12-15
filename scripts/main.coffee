@@ -7,7 +7,7 @@ class Main
     socket.on 'nameTaken', =>
       $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
 
-    socket.on 'start', (data) =>
+    socket.on 'startGame', (data) =>
       $('#name').remove()
       Math.seedrandom(data.seed)
       @currentSeed = Math.random
