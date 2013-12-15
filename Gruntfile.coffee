@@ -10,6 +10,7 @@ module.exports = (grunt) ->
           './scripts/vendor/seedrandom/seedrandom.min.js'
           './scripts/vendor/jquery/jquery.min.js'
           './scripts/vendor/phaser/phaser.min.js'
+          './scripts/vendor/mustache/mustache.min.js'
         ]
         dest: './<%= config.root %>/scripts/vendor.min.js'
     watch:
@@ -33,7 +34,7 @@ module.exports = (grunt) ->
         src: ['./scripts/main.coffee']
         dest: './public/scripts/main.js'
         options:
-          transform: ['coffeeify']
+          transform: ['coffeeify', 'browserify-plain-jade']
     stylus:
       compile:
         files:
