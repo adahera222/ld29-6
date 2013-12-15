@@ -44,9 +44,14 @@ var players = {};
 
 io.sockets.on('connection', function (socket) {
   socket.on('newPlayer', function (playerName) {
-    socket.playerName = playerName;
-    players[playerName] = playerName;
-    socket.emit('start');
+    if (players[playerName]) {
+      socket.emit('nameTaken');
+    }
+    else {
+      players[playerName] = playerName;
+      socket.playerName = playerName;
+      socket.emit('start');
+    }
   });
 
   socket.on('disconnect', function() {

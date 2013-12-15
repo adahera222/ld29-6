@@ -8,6 +8,9 @@ class Main
 
     socket = io.connect('/')
 
+    socket.on 'nameTaken', =>
+      $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
+
     socket.on 'start', =>
       $('#name').remove()
       @playing = true
