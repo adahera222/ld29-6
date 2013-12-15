@@ -1,9 +1,17 @@
 .scoreboard#scoreboard
   h1 <strong>You Only Got One</strong> Minute
   h2 How far did you fall?
+  h3 YOU
+  ul
+    li
+      p {{me.rank}}
+      p {{me.name}}
+      p {{me.distance}}
+  h3 INTERNET
   ul
     {{#players}}
     li
+      p {{rank}}
       p {{name}}
       p {{distance}}
     {{/players}}

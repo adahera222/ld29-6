@@ -141,7 +141,9 @@ function makeScoreboard() {
 function sendScoreboard(scoreboard) {
   for (var playerName in players) {
     var player = players[playerName];
-    scoreboard.me = {name:playerName, distance:player.distance};
+    scoreboard.me = _.find(scoreboard.players, function(p) {
+      return p['name'].toString() === playerName.toString();
+    });
     player.socket.emit('scoreboard', scoreboard);
   }
 }
