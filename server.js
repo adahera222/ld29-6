@@ -131,12 +131,17 @@ function makeScoreboard() {
 
   scoreboard.players = _.sortBy(playerDistances, 'distance').reverse();
 
+  _.each(scoreboard.players, function(element, index) {
+    element['rank'] = index + 1;
+  });
+
   sendScoreboard(scoreboard);
 }
 
 function sendScoreboard(scoreboard) {
   for (var playerName in players) {
     var player = players[playerName];
+    scoreboard.me = {name:playerName, distance:player.distance};
     player.socket.emit('scoreboard', scoreboard);
   }
 }
