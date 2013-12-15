@@ -34,6 +34,12 @@ class Main
       , 500)
 
     socket.on 'startGame', (data) =>
+      if @scoreboardMusic.isPlaying
+        @scoreboardMusic.stop()
+
+      if !@fallingMusic.isPlaying
+        @fallingMusic.play()
+
       if @countdownTimer
         clearInterval @countdownTimer
 
@@ -60,6 +66,12 @@ class Main
       socket.emit('distance', @totalDistance);
 
     socket.on 'scoreboard', (data) =>
+      if @fallingMusic.isPlaying
+        @fallingMusic.stop()
+
+      if !@scoreboardMusic.isPlaying
+        @scoreboardMusic.play()
+
       $('body').css('overflow', 'hidden')
       $('body').append Mustache.render(scoreboardTemplate, data)
 
@@ -109,6 +121,7 @@ class Main
     @game.load.image('white_block', 'assets/images/white_block.png')
     @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json')
     @game.load.audio('falling', ['assets/audio/falling.wav'])
+    @game.load.audio('scoreboard', ['assets/audio/scoreboard.wav'])
     @game.load.audio('change', ['assets/audio/change.wav'])
     @game.load.audio('collide', ['assets/audio/collide.wav'])
     @game.load.audio('explode', ['assets/audio/explode.wav'])
@@ -158,13 +171,14 @@ class Main
       else
         @player.animations.play('center_white', 15, true)
 
-    @music = @game.add.audio('falling')
+    @fallingMusic = @game.add.audio('falling')
+    @scoreboardMusic = @game.add.audio('scoreboard')
     @changeSound = @game.add.audio('change')
     @collideSound = @game.add.audio('collide')
     @explodeSound = @game.add.audio('explode')
     @beepboopSound = @game.add.audio('beepboop')
 
-    @music.play('', 0, 1, true)
+    @fallingMusic.play('', 0, 1, true)
 
   update: =>
     if @playing
