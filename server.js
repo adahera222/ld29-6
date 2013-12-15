@@ -71,6 +71,7 @@ io.sockets.on('connection', function(socket) {
       referee.socket = socket;
       referee.token = Math.random() * 999999999;
       socket.emit('token', {token: referee.token});
+      socket.emit('state', {time: timeLeft()});
     }
   });
 
@@ -122,10 +123,10 @@ function startGame() {
     player.socket.emit('startGame', {seed: game.seed, length: process.env.GAME_LENGTH});
   }
 
-  gameTimer = setInterval(function() {
-    var time = Math.floor((new Date).getTime()/1000) - game.startTime;
+  referee.socket.emit('state', {time: timeLeft()});
 
-    if (Math.floor((new Date).getTime()/1000) > game.startTime + process.env.GAME_LENGTH) {
+  gameTimer = setInterval(function() {
+    if (!timeLeft()) {
       endGame();
     }
   }, 100);
@@ -136,6 +137,23 @@ function endGame() {
   for (var playerName in players) {
     var player = players[playerName];
     player.socket.emit('endGame');
+  }
+  referee.socket.emit('state', {time: timeLeft()});
+}
+
+function timeLeft() {
+  if (game.startTime) {
+    var timeLeft = (parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)) - Math.floor((new Date).getTime()/1000);
+
+    if (timeLeft > 0) {
+      return timeLeft;
+    }
+    else {
+      return null;
+    }
+  }
+  else {
+    return null;
   }
 }
 

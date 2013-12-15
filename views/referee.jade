@@ -11,6 +11,7 @@ html
       .game-controls
         h1 Controls
         a#start-game(href="javascript:void(0)") Start Game
+        p#time-left
       .players#players
         h1 Players
         p#count
@@ -21,6 +22,8 @@ html
 
     script
       var token;
+      var timeLeftTimer;
+      var state = {};
       var socket = io.connect('/');
 
       socket.emit('newReferee', prompt('password please'));
@@ -38,10 +41,41 @@ html
         $('#count').text($('#players > ul > li').size());
       });
 
+      socket.on('state', function(data) {
+        state = data;
+
+        if (data.time) {
+          state.endTime = Math.floor((new Date).getTime()/1000) + data.time;
+
+          $('#start-game').css('opacity', '.5');
+          $('#start-game').css('cursor', 'default');
+
+          var that = this;
+
+          timeLeftTimer = setInterval(function() {
+            var timeLeft = state.endTime - Math.floor((new Date).getTime()/1000);
+
+            if (timeLeft < 0) {
+              timeLeft = 0;
+            }
+
+            $('#time-left').text(timeLeft);
+          }, 300);
+        }
+        else {
+          $('#start-game').css('opacity', '1');
+          $('#start-game').css('cursor', 'pointer');
+          clearInterval(timeLeftTimer);
+          $('#time-left').text('0');
+        }
+      });
+
       $('#start-game').click(function(event) {
         event.preventDefault();
 
-        socket.emit('startGame', token);
+        if (!state.time) {
+          socket.emit('startGame', token);
+        }
       });
 
     if reload
