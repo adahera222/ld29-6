@@ -40,8 +40,18 @@ app.get('/*', function(req, res, next) {
   res.render('index', data);
 });
 
-io.sockets.on('connection', function (socket) {
+var players = {};
 
+io.sockets.on('connection', function (socket) {
+  socket.on('newPlayer', function (playerName) {
+    socket.playerName = playerName;
+    players[playerName] = playerName;
+    socket.emit('start');
+  });
+
+  socket.on('disconnect', function() {
+    delete players[socket.playerName];
+  });
 });
 
 server.listen(app.get('port'));

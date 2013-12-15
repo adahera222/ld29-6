@@ -1,9 +1,19 @@
+nameTemplate = require '../templates/name.jade'
+
 class Main
   initialize: =>
     Math.seedrandom('12345')
 
+    @currentSeed = Math.random
+
     socket = io.connect('/')
 
+    socket.on 'start', =>
+      $('#name').remove()
+      @playing = true
+
+    @noNameTries = 0
+    @playing = false
     @blocksTimer = 0
     @currentBlocksVelocity = 0
     @blocksFrequency = @currentBlocksVelocity
@@ -17,16 +27,48 @@ class Main
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
 
+    placeholderNames = [
+      "Sparaticus Fisticuffs"
+      "Barry Jackalope"
+      "Warsh Higgins"
+      "Two-Sky McFry Guy"
+      "Wonder \"Kid\" Pushlimiter"
+      "Guy"
+      "Smalls Twolover"
+    ]
+
+    Math.seedrandom()
+
+    $('body').append Mustache.render(nameTemplate, {placeholder:placeholderNames[Math.floor(Math.random() * placeholderNames.length)]})
+
+    Math.random = @currentSeed
+
+    $('#name-form').submit (event) =>
+      event.preventDefault()
+      playerName = $('#player-name').val()
+      if playerName isnt ''
+        @noNameTries = 0
+        socket.emit('newPlayer', playerName)
+      else
+        @noNameTries++
+
+        switch @noNameTries
+          when 1 then $('#name > h1').text 'Perhaps I wasn\'t clear. I need a name.'
+          when 2 then $('#name > h1').text 'Oh, come on. Just write a name.'
+          when 3 then $('#name > h1').text 'Yeeaaaa...gettin\' old. Name time.'
+          when 4 then $('#name > h1').text 'Seriously. Name.'
+          else $('#name > h1').text 'Sigh.'
+
   preload: =>
+    @game.stage.disableVisibilityChange = true
+    @game.stage.backgroundColor = '#999999'
+
     @game.load.image('black_player', 'assets/images/black_player.png')
     @game.load.image('white_player', 'assets/images/white_player.png')
     @game.load.image('black_block', 'assets/images/black_block.png')
     @game.load.image('white_block', 'assets/images/white_block.png')
 
   create: =>
-    @game.stage.disableVisibilityChange = true
-    @game.stage.backgroundColor = '#999999'
-
     $(window).resize =>
       @resize()
 
@@ -55,37 +97,38 @@ class Main
     @player.body.customSeparateY = true
 
   update: =>
-    horPor = @game.world.width / 50
+    if @playing
+      horPor = @game.world.width / 50
 
-    if @collided
-      if @game.time.now > @collideTimer
-        @collided = false
-    else
-      if (@leftKey.isDown)
-        @player.x -= horPor
-      else if (@rightKey.isDown)
-        @player.x += horPor
+      if @collided
+        if @game.time.now > @collideTimer
+          @collided = false
+      else
+        if (@leftKey.isDown)
+          @player.x -= horPor
+        else if (@rightKey.isDown)
+          @player.x += horPor
 
-      if @blocksFrequency > 0
-        if @game.time.now > @blocksTimer
-          @addBlock()
+        if @blocksFrequency > 0
+          if @game.time.now > @blocksTimer
+            @addBlock()
 
-      @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
+        @currentBlocksVelocity -= @currentBlocksAcceleration if @currentBlocksVelocity > -@maxBlocksVelocity
 
-    @blackBlocks.forEachAlive( (block) =>
-      block.body.velocity.y = @currentBlocksVelocity
-    , @)
+      @blackBlocks.forEachAlive( (block) =>
+        block.body.velocity.y = @currentBlocksVelocity
+      , @)
 
-    @whiteBlocks.forEachAlive( (block) =>
-      block.body.velocity.y = @currentBlocksVelocity
-    , @)
+      @whiteBlocks.forEachAlive( (block) =>
+        block.body.velocity.y = @currentBlocksVelocity
+      , @)
 
-    @totalDistance += @currentBlocksVelocity * -1
+      @totalDistance += @currentBlocksVelocity * -1
 
-    @blocksFrequency = 1500 - -@currentBlocksVelocity
+      @blocksFrequency = 1500 - -@currentBlocksVelocity
 
-    @game.physics.collide(@player, @blackBlocks, @blackBlockCollide, null, @)
-    @game.physics.collide(@player, @whiteBlocks, @whiteBlockCollide, null, @)
+      @game.physics.collide(@player, @blackBlocks, @blackBlockCollide, null, @)
+      @game.physics.collide(@player, @whiteBlocks, @whiteBlockCollide, null, @)
 
   switchColors: =>
     if !@collided
