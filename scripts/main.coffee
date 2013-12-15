@@ -96,10 +96,9 @@ class Main
     @game.stage.disableVisibilityChange = true
     @game.stage.backgroundColor = '#999999'
 
-    @game.load.image('black_player', 'assets/images/black_player.png')
-    @game.load.image('white_player', 'assets/images/white_player.png')
     @game.load.image('black_block', 'assets/images/black_block.png')
     @game.load.image('white_block', 'assets/images/white_block.png')
+    @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json');
 
   create: =>
     $(window).resize =>
@@ -124,10 +123,13 @@ class Main
     @whiteBlocks.setAll('anchor.y', 0)
     @whiteBlocks.setAll('body.immovable', true)
 
-    @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'white_player')
+    @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
+    @player.animations.add('center_black', [0...7])
+    @player.animations.add('center_white', [7...14])
     @player.anchor.setTo(0.5, 1)
     @player.body.customSeparateX = true
     @player.body.customSeparateY = true
+    @player.animations.play('center_black', 15, true)
 
   update: =>
     if @playing
@@ -168,10 +170,10 @@ class Main
     if !@collided
       if @currentColor is 'white'
         @currentColor = 'black'
-        @player.loadTexture('black_player', 0)
+        @player.animations.play('center_black', 15, true)
       else
         @currentColor = 'white'
-        @player.loadTexture('white_player', 0)
+        @player.animations.play('center_white', 15, true)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
