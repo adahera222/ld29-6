@@ -97,9 +97,10 @@ class Main
     @game.stage.disableVisibilityChange = true
     @game.stage.backgroundColor = '#999999'
 
+    @game.load.image('background', 'assets/images/background.jpg')
     @game.load.image('black_block', 'assets/images/black_block.png')
     @game.load.image('white_block', 'assets/images/white_block.png')
-    @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json');
+    @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json')
 
   create: =>
     $(window).resize =>
@@ -111,6 +112,8 @@ class Main
     @rightKey = @game.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
 
     @game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR).onDown.add(@switchColors, @)
+
+    @background = @game.add.tileSprite(0, 0, 2560, 1600, 'background')
 
     @blackBlocks = @game.add.group()
     @blackBlocks.createMultiple(30, 'black_block')
@@ -177,6 +180,8 @@ class Main
       @game.physics.collide(@player, @blackBlocks, @blackBlockCollide, null, @)
       @game.physics.collide(@player, @whiteBlocks, @whiteBlockCollide, null, @)
 
+    @background.tilePosition.y += @currentBlocksVelocity / 1000
+
   switchColors: =>
     if !@collided
       if @currentColor is 'white'
@@ -237,9 +242,9 @@ class Main
 
   reset: =>
     @blocksTimer = 0
-    @currentBlocksVelocity = 0
     @blocksFrequency = @currentBlocksVelocity
     @maxBlocksVelocity = 1000
+    @currentBlocksVelocity = -@maxBlocksVelocity
     @blocksAccelerationIncrement = 10
     @currentBlocksAcceleration = @blocksAccelerationIncrement
     @collided = false
