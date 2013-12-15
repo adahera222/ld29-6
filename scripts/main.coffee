@@ -9,6 +9,9 @@ class Main
     socket.on 'nameTaken', =>
       $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
 
+    socket.on 'joined', =>
+      $('#name').remove()
+
     socket.on 'countdown', (data) =>
       $('body').append Mustache.render(countdownTemplate, data)
 
@@ -27,7 +30,6 @@ class Main
       if @countdownTimer
         clearInterval @countdownTimer
 
-      $('#name').remove()
       $('#scoreboard').remove()
       $('#countdown').remove()
       $('body').css('overflow', 'visible')

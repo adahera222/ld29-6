@@ -56,6 +56,8 @@ io.sockets.on('connection', function(socket) {
       players[playerName] = {name:playerName, socket:socket};
       socket.playerName = playerName;
 
+      socket.emit('joined');
+
       if (referee.socket) {
         referee.socket.emit('players', {players:parsePlayers()});
       }
