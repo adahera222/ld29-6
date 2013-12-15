@@ -201,5 +201,5 @@ class Main
       @game.renderer.resize(width, height)
 
 $(document).ready ->
-  @main = new Main()
-  @main.initialize()
+  main = new Main()
+  main.initialize()
