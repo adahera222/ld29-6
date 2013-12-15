@@ -70,7 +70,6 @@ io.sockets.on('connection', function(socket) {
       referee.socket = socket;
       referee.token = Math.random() * 999999999;
       socket.emit('token', {token: referee.token});
-      startGame();
     }
   });
 

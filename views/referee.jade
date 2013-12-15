@@ -8,7 +8,11 @@ html
 
   body
     .referee
+      .game-controls
+        h1 Controls
+        a#start-game(href="javascript:void(0)") Start Game
       .players#players
+        h1 Players
         p#count
         ul
 
@@ -22,8 +26,8 @@ html
       socket.emit('newReferee', prompt('password please'));
 
       socket.on('token', function(data) {
-        this.token = data.token;
-        socket.emit('getPlayers', this.token);
+        token = data.token;
+        socket.emit('getPlayers', token);
       });
 
       socket.on('players', function(data) {
@@ -32,6 +36,12 @@ html
           $('#players > ul').append("<li>" + player + "</li>");
         }
         $('#count').text($('#players > ul > li').size());
+      });
+
+      $('#start-game').click(function(event) {
+        event.preventDefault();
+
+        socket.emit('startGame', token);
       });
 
     if reload
