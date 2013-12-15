@@ -43,6 +43,7 @@ app.get('/*', function(req, res, next) {
 
 var game = {};
 var gameTimer;
+var countdownStartTime;
 var countdownTimer;
 var players = {};
 var referee = {};
@@ -57,6 +58,19 @@ io.sockets.on('connection', function(socket) {
       socket.playerName = playerName;
 
       socket.emit('joined');
+
+      var tl = timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)));
+
+      if (tl > 5) {
+        socket.emit('startGame', {seed: game.seed, length: tl});
+      }
+      else if (!tl) {
+        var cdtl = timeLeft((parseInt(countdownStartTime) + parseInt(process.env.REST_LENGTH)));
+
+        if (cdtl > 2) {
+          socket.emit('countdown', {time: cdtl});
+        }
+      }
 
       if (referee.socket) {
         referee.socket.emit('players', {players:parsePlayers()});
@@ -159,7 +173,7 @@ function countdown() {
     player.socket.emit('countdown', {time: process.env.REST_LENGTH});
   }
 
-  var countdownStartTime = Math.floor((new Date).getTime()/1000);
+  countdownStartTime = Math.floor((new Date).getTime()/1000);
 
   countdownTimer = setInterval(function() {
     if (!timeLeft((parseInt(countdownStartTime) + parseInt(process.env.REST_LENGTH)))) {
