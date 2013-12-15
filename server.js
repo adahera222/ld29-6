@@ -95,7 +95,7 @@ io.sockets.on('connection', function(socket) {
     allIn = true;
 
     for (var player in players) {
-      if (players[player].distance === null) {
+      if (!(typeof players[player].distance !== "undefined" && players[player].distance !== null)) {
         allIn = false;
 
         break;
