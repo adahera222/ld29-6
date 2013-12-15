@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
+var _ = require('underscore');
 
 if (process.env.RELOAD && process.env.RELOAD === 'true') {
   app.set('reload', true);
@@ -128,7 +129,7 @@ function makeScoreboard() {
     playerDistances.push({name:playerName, distance:player.distance});
   }
 
-  scoreboard.players = playerDistances;
+  scoreboard.players = _.sortBy(playerDistances, 'distance').reverse();
 
   sendScoreboard(scoreboard);
 }
