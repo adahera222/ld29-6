@@ -126,10 +126,18 @@ class Main
     @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
     @player.animations.add('center_black', [0...7])
     @player.animations.add('center_white', [7...14])
-    @player.anchor.setTo(0.5, 1)
+    @player.animations.add('switch_to_black', [14...28])
+    @player.animations.add('switch_to_white', [28...42])
+    @player.anchor.setTo(0.5, .5)
     @player.body.customSeparateX = true
     @player.body.customSeparateY = true
     @player.animations.play('center_black', 15, true)
+
+    @player.events.onAnimationComplete.add =>
+      if @currentColor is 'black'
+        @player.animations.play('center_white', 15, true)
+      else
+        @player.animations.play('center_black', 15, true)
 
   update: =>
     if @playing
@@ -170,10 +178,12 @@ class Main
     if !@collided
       if @currentColor is 'white'
         @currentColor = 'black'
-        @player.animations.play('center_black', 15, true)
+        @player.animations.play('switch_to_black', 15, false)
+        # @player.animations.play('center_black', 15, true)
       else
         @currentColor = 'white'
-        @player.animations.play('center_white', 15, true)
+        @player.animations.play('switch_to_white', 15, false)
+        # @player.animations.play('center_white', 15, true)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
