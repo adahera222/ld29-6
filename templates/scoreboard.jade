@@ -1,0 +1,9 @@
+.scoreboard#scoreboard
+  h1 <strong>You Only Got One</strong> Minute
+  h2 How far did you fall?
+  ul
+    {{#players}}
+    li
+      p {{name}}
+      p {{distance}}
+    {{/players}}

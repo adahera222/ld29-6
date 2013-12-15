@@ -87,6 +87,24 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
+  socket.on('distance', function(distance) {
+    players[socket.playerName].distance = distance;
+
+    allIn = true;
+
+    for (var player in players) {
+      if (players[player].distance === null) {
+        allIn = false;
+
+        break;
+      }
+    }
+
+    if (allIn) {
+      makeScoreboard();
+    }
+  });
+
   socket.on('disconnect', function() {
     if (socket.referee) {
       referee = {};
@@ -100,6 +118,27 @@ io.sockets.on('connection', function(socket) {
     }
   });
 });
+
+function makeScoreboard() {
+  var scoreboard = {};
+  var playerDistances = [];
+
+  for (var playerName in players) {
+    var player = players[playerName];
+    playerDistances.push({name:playerName, distance:player.distance});
+  }
+
+  scoreboard.players = playerDistances;
+
+  sendScoreboard(scoreboard);
+}
+
+function sendScoreboard(scoreboard) {
+  for (var playerName in players) {
+    var player = players[playerName];
+    player.socket.emit('scoreboard', scoreboard);
+  }
+}
 
 function parsePlayers() {
   var parsedPlayers = {};
@@ -120,6 +159,7 @@ function startGame() {
 
   for (var playerName in players) {
     var player = players[playerName];
+    player.distance = null;
     player.socket.emit('startGame', {seed: game.seed, length: process.env.GAME_LENGTH});
   }
 

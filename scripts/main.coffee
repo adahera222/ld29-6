@@ -1,4 +1,5 @@
 nameTemplate = require '../templates/name.jade'
+scoreboardTemplate = require '../templates/scoreboard.jade'
 
 class Main
   initialize: =>
@@ -9,6 +10,8 @@ class Main
 
     socket.on 'startGame', (data) =>
       $('#name').remove()
+      $('#scoreboard').remove()
+      $('body').css('overflow', 'visible')
       Math.seedrandom(data.seed)
       @currentSeed = Math.random
       @gameTimer = @game.time.now + (data.length * 1000)
@@ -17,12 +20,20 @@ class Main
 
     socket.on 'endGame', (data) =>
       @playing = false
+
       @blackBlocks.forEachAlive (block) =>
         block.kill()
       , @
+
       @whiteBlocks.forEachAlive (block) =>
         block.kill()
       , @
+
+      socket.emit('distance', @totalDistance);
+
+    socket.on 'scoreboard', (data) =>
+      $('body').css('overflow', 'hidden')
+      $('body').append Mustache.render(scoreboardTemplate, data)
 
     @gameTimer = 0;
     @noNameTries = 0
