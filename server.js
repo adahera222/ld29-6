@@ -43,6 +43,7 @@ app.get('/*', function(req, res, next) {
 
 var game = {};
 var gameTimer;
+var countdownTimer;
 var players = {};
 var referee = {};
 
@@ -72,7 +73,7 @@ io.sockets.on('connection', function(socket) {
       referee.socket = socket;
       referee.token = Math.random() * 999999999;
       socket.emit('token', {token: referee.token});
-      socket.emit('state', {time: timeLeft()});
+      socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
     }
   });
 
@@ -146,6 +147,23 @@ function sendScoreboard(scoreboard) {
     });
     player.socket.emit('scoreboard', scoreboard);
   }
+
+  countdown();
+}
+
+function countdown() {
+  for (var playerName in players) {
+    var player = players[playerName];
+    player.socket.emit('countdown', {time: process.env.REST_LENGTH});
+  }
+
+  var countdownStartTime = Math.floor((new Date).getTime()/1000);
+
+  countdownTimer = setInterval(function() {
+    if (!timeLeft((parseInt(countdownStartTime) + parseInt(process.env.REST_LENGTH)))) {
+      startGame();
+    }
+  }, 100);
 }
 
 function parsePlayers() {
@@ -161,6 +179,10 @@ function parsePlayers() {
 }
 
 function startGame() {
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+  }
+
   game = {}
   game.seed = Math.random() * 999999999;
   game.startTime = Math.floor((new Date).getTime()/1000);
@@ -171,27 +193,35 @@ function startGame() {
     player.socket.emit('startGame', {seed: game.seed, length: process.env.GAME_LENGTH});
   }
 
-  referee.socket.emit('state', {time: timeLeft()});
+  if (referee.socket) {
+    referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
+  }
 
   gameTimer = setInterval(function() {
-    if (!timeLeft()) {
+    if (!timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))) {
       endGame();
     }
   }, 100);
 }
 
 function endGame() {
-  clearInterval(gameTimer);
+  if (gameTimer) {
+    clearInterval(gameTimer);
+  }
+
   for (var playerName in players) {
     var player = players[playerName];
     player.socket.emit('endGame');
   }
-  referee.socket.emit('state', {time: timeLeft()});
+
+  if (referee.socket) {
+    referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
+  }
 }
 
-function timeLeft() {
+function timeLeft(target) {
   if (game.startTime) {
-    var timeLeft = (parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)) - Math.floor((new Date).getTime()/1000);
+    var timeLeft = target - Math.floor((new Date).getTime()/1000);
 
     if (timeLeft > 0) {
       return timeLeft;

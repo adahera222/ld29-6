@@ -1,5 +1,6 @@
 nameTemplate = require '../templates/name.jade'
 scoreboardTemplate = require '../templates/scoreboard.jade'
+countdownTemplate = require '../templates/countdown.jade'
 
 class Main
   initialize: =>
@@ -8,9 +9,27 @@ class Main
     socket.on 'nameTaken', =>
       $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
 
+    socket.on 'countdown', (data) =>
+      $('body').append Mustache.render(countdownTemplate, data)
+
+      endTime = Math.floor((new Date).getTime()/1000) + parseInt(data.time)
+
+      @countdownTimer = setInterval( =>
+        timeLeft = endTime - Math.floor((new Date).getTime()/1000)
+
+        if timeLeft < 0
+          timeLeft = 0
+
+        $('#countdown-number').text(timeLeft)
+      , 300)
+
     socket.on 'startGame', (data) =>
+      if @countdownTimer
+        clearInterval @countdownTimer
+
       $('#name').remove()
       $('#scoreboard').remove()
+      $('#countdown').remove()
       $('body').css('overflow', 'visible')
       Math.seedrandom(data.seed)
       @currentSeed = Math.random

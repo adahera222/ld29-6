@@ -50,8 +50,6 @@ html
           $('#start-game').css('opacity', '.5');
           $('#start-game').css('cursor', 'default');
 
-          var that = this;
-
           timeLeftTimer = setInterval(function() {
             var timeLeft = state.endTime - Math.floor((new Date).getTime()/1000);
 
