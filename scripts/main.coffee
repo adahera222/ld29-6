@@ -11,20 +11,24 @@ class Main
       $('#name').remove()
       Math.seedrandom(data.seed)
       @currentSeed = Math.random
+      @gameTimer = @game.time.now + (data.length * 1000)
+      @reset()
       @playing = true
 
+    socket.on 'endGame', (data) =>
+      @playing = false
+      @blackBlocks.forEachAlive (block) =>
+        block.kill()
+      , @
+      @whiteBlocks.forEachAlive (block) =>
+        block.kill()
+      , @
+
+    @gameTimer = 0;
     @noNameTries = 0
     @playing = false
-    @blocksTimer = 0
-    @currentBlocksVelocity = 0
-    @blocksFrequency = @currentBlocksVelocity
-    @maxBlocksVelocity = 1000
-    @blocksAccelerationIncrement = 10
-    @currentBlocksAcceleration = @blocksAccelerationIncrement
-    @currentColor = 'white'
-    @collided = false
-    @collideTimer = 0
-    @totalDistance = 0
+
+    @reset()
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
 
@@ -120,7 +124,8 @@ class Main
         block.body.velocity.y = @currentBlocksVelocity
       , @)
 
-      @totalDistance += @currentBlocksVelocity * -1
+      if @game.time.now <= @gameTimer
+        @totalDistance += @currentBlocksVelocity * -1
 
       @blocksFrequency = 1500 - -@currentBlocksVelocity
 
@@ -179,6 +184,18 @@ class Main
       , @)
 
     @blocksTimer = @game.time.now + @blocksFrequency
+
+  reset: =>
+    @blocksTimer = 0
+    @currentBlocksVelocity = 0
+    @blocksFrequency = @currentBlocksVelocity
+    @maxBlocksVelocity = 1000
+    @blocksAccelerationIncrement = 10
+    @currentBlocksAcceleration = @blocksAccelerationIncrement
+    @currentColor = 'white'
+    @collided = false
+    @collideTimer = 0
+    @totalDistance = 0
 
   resize: =>
     width = $(window).width()

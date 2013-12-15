@@ -41,6 +41,7 @@ app.get('/*', function(req, res, next) {
 });
 
 var game = {};
+var gameTimer;
 var players = {};
 var referee = {};
 
@@ -101,11 +102,13 @@ io.sockets.on('connection', function(socket) {
 
 function parsePlayers() {
   var parsedPlayers = {};
+
   for (var playerName in players) {
     var player = players[playerName];
     var parsedPlayer = {name: player.name};
     parsedPlayers[playerName] = parsedPlayer;
   }
+
   return parsedPlayers;
 }
 
@@ -113,9 +116,26 @@ function startGame() {
   game = {}
   game.seed = Math.random() * 999999999;
   game.startTime = Math.floor((new Date).getTime()/1000);
+
   for (var playerName in players) {
     var player = players[playerName];
-    player.socket.emit('startGame', {seed: game.seed});
+    player.socket.emit('startGame', {seed: game.seed, length: process.env.GAME_LENGTH});
+  }
+
+  gameTimer = setInterval(function() {
+    var time = Math.floor((new Date).getTime()/1000) - game.startTime;
+
+    if (Math.floor((new Date).getTime()/1000) > game.startTime + process.env.GAME_LENGTH) {
+      endGame();
+    }
+  }, 100);
+}
+
+function endGame() {
+  clearInterval(gameTimer);
+  for (var playerName in players) {
+    var player = players[playerName];
+    player.socket.emit('endGame');
   }
 }
 
