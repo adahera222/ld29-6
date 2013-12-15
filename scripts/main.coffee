@@ -101,6 +101,7 @@ class Main
     @game.load.image('black_block', 'assets/images/black_block.png')
     @game.load.image('white_block', 'assets/images/white_block.png')
     @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json')
+    @game.load.audio('falling', ['assets/audio/falling.wav'])
 
   create: =>
     $(window).resize =>
@@ -145,6 +146,9 @@ class Main
         @player.animations.play('center_black', 15, true)
       else
         @player.animations.play('center_white', 15, true)
+
+    @music = @game.add.audio('falling')
+    @music.play('', 0, 1, true)
 
   update: =>
     if @playing
