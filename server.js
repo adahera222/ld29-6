@@ -3,12 +3,6 @@ var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
-if (process.env.GATE && process.env.GATE === 'true') {
-  if ((process.env.USERNAME && process.env.USERNAME !== '') && (process.env.PASSWORD && process.env.PASSWORD !== '')) {
-    app.use(express.basicAuth(process.env.USERNAME, process.env.PASSWORD));
-  }
-}
-
 if (process.env.RELOAD && process.env.RELOAD === 'true') {
   app.set('reload', true);
 }
@@ -34,6 +28,12 @@ function error(err, req, res, next) {
   res.send(err.stack);
 }
 
+app.get('/referee', function(req, res, next) {
+  var data = {"reload":app.get('reload')};
+
+  res.render('referee', data);
+});
+
 app.get('/*', function(req, res, next) {
   var data = {"reload":app.get('reload')};
 
@@ -41,9 +41,10 @@ app.get('/*', function(req, res, next) {
 });
 
 var players = {};
+var referee = {};
 
-io.sockets.on('connection', function (socket) {
-  socket.on('newPlayer', function (playerName) {
+io.sockets.on('connection', function(socket) {
+  socket.on('newPlayer', function(playerName) {
     if (players[playerName]) {
       socket.emit('nameTaken');
     }
@@ -51,11 +52,38 @@ io.sockets.on('connection', function (socket) {
       players[playerName] = playerName;
       socket.playerName = playerName;
       socket.emit('start', {seed: Math.random() * 999999999});
+
+      if (referee.socket) {
+        referee.socket.emit('players', {players:players});
+      }
+    }
+  });
+
+  socket.on('newReferee', function(password) {
+    if (password === process.env.REFEREE_PASSWORD) {
+      if (referee.token) {
+        socket.emit('usurped');
+        referee = {};
+      }
+
+      referee.socket = socket;
+      referee.token = Math.random() * 999999999;
+      socket.emit('token', {token: referee.token});
+    }
+  });
+
+  socket.on('getPlayers', function(token) {
+    if (token === referee.token) {
+      socket.emit('players', {players: players});
     }
   });
 
   socket.on('disconnect', function() {
     delete players[socket.playerName];
+
+    if (referee.socket) {
+      referee.socket.emit('players', {players:players});
+    }
   });
 });
 

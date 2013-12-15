@@ -1,0 +1,38 @@
+doctype 5
+html
+  head
+    meta(charset='utf-8')
+    title LD28 Referee
+    link(href='http://fonts.googleapis.com/css?family=Press+Start+2P', rel='stylesheet', type='text/css')
+    link(href="/styles/styles.css", rel="stylesheet", type="text/css")
+
+  body
+    .referee
+      .players#players
+        p#count
+        ul
+
+    script(src="/socket.io/socket.io.js")
+    script(src="/scripts/vendor.min.js")
+
+    script
+      var token;
+      var socket = io.connect('/');
+
+      socket.emit('newReferee', prompt('password please'));
+
+      socket.on('token', function(data) {
+        this.token = data.token;
+        socket.emit('getPlayers', this.token);
+      });
+
+      socket.on('players', function(data) {
+        $('#players > ul').empty();
+        for (var player in data.players) {
+          $('#players > ul').append("<li>" + player + "</li>");
+        }
+        $('#count').text($('#players > ul > li').size());
+      });
+
+    if reload
+      script(src="http://localhost:35729/livereload.js")
