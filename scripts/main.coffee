@@ -58,6 +58,7 @@ class Main
 
     @gameTimer = 0;
     @noNameTries = 0
+    @currentColor = 'white'
     @playing = false
 
     @reset()
@@ -126,18 +127,20 @@ class Main
     @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
     @player.animations.add('center_black', [0...7])
     @player.animations.add('center_white', [7...14])
-    @player.animations.add('switch_to_black', [14...28])
-    @player.animations.add('switch_to_white', [28...42])
+    @player.animations.add('switch_to_white', [14...28])
+    @player.animations.add('switch_to_black', [28...42])
+    @player.animations.add('collide_black', [42...44])
+    @player.animations.add('collide_white', [44...46])
     @player.anchor.setTo(0.5, .5)
     @player.body.customSeparateX = true
     @player.body.customSeparateY = true
-    @player.animations.play('center_black', 15, true)
+    @player.animations.play('center_white', 15, true)
 
     @player.events.onAnimationComplete.add =>
       if @currentColor is 'black'
-        @player.animations.play('center_white', 15, true)
-      else
         @player.animations.play('center_black', 15, true)
+      else
+        @player.animations.play('center_white', 15, true)
 
   update: =>
     if @playing
@@ -179,11 +182,9 @@ class Main
       if @currentColor is 'white'
         @currentColor = 'black'
         @player.animations.play('switch_to_black', 15, false)
-        # @player.animations.play('center_black', 15, true)
       else
         @currentColor = 'white'
         @player.animations.play('switch_to_white', 15, false)
-        # @player.animations.play('center_white', 15, true)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
@@ -208,6 +209,11 @@ class Main
     @currentBlocksVelocity = 0
     @blocksFrequency = 0
     @currentBlocksAcceleration = @blocksAccelerationIncrement
+
+    if @currentColor is 'black'
+      @player.animations.play('collide_black', 1, false)
+    else
+      @player.animations.play('collide_white', 1, false)
 
   addBlock: =>
     rand = Math.floor(Math.random() * 2)
@@ -236,7 +242,6 @@ class Main
     @maxBlocksVelocity = 1000
     @blocksAccelerationIncrement = 10
     @currentBlocksAcceleration = @blocksAccelerationIncrement
-    @currentColor = 'white'
     @collided = false
     @collideTimer = 0
     @totalDistance = 0
