@@ -2,17 +2,15 @@ nameTemplate = require '../templates/name.jade'
 
 class Main
   initialize: =>
-    Math.seedrandom('12345')
-
-    @currentSeed = Math.random
-
     socket = io.connect('/')
 
     socket.on 'nameTaken', =>
       $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
 
-    socket.on 'start', =>
+    socket.on 'start', (data) =>
       $('#name').remove()
+      Math.seedrandom(data.seed)
+      @currentSeed = Math.random
       @playing = true
 
     @noNameTries = 0
@@ -40,11 +38,7 @@ class Main
       "Smalls Twolover"
     ]
 
-    Math.seedrandom()
-
     $('body').append Mustache.render(nameTemplate, {placeholder:placeholderNames[Math.floor(Math.random() * placeholderNames.length)]})
-
-    Math.random = @currentSeed
 
     $('#name-form').submit (event) =>
       event.preventDefault()

@@ -50,7 +50,7 @@ io.sockets.on('connection', function (socket) {
     else {
       players[playerName] = playerName;
       socket.playerName = playerName;
-      socket.emit('start');
+      socket.emit('start', {seed: Math.random() * 999999999});
     }
   });
 
