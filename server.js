@@ -217,6 +217,10 @@ function endGame() {
   if (referee.socket) {
     referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
   }
+
+  if (_.size(players) === 0) {
+    countdown();
+  }
 }
 
 function timeLeft(target) {
