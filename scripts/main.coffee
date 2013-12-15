@@ -17,14 +17,21 @@ class Main
 
       endTime = Math.floor((new Date).getTime()/1000) + parseInt(data.time)
 
+      lastTime = parseInt(data.time)
+
       @countdownTimer = setInterval( =>
         timeLeft = endTime - Math.floor((new Date).getTime()/1000)
 
         if timeLeft < 0
           timeLeft = 0
 
+        if timeLeft isnt lastTime
+          @beepboopSound.play()
+
+        lastTime = timeLeft
+
         $('#countdown-number').text(timeLeft)
-      , 300)
+      , 500)
 
     socket.on 'startGame', (data) =>
       if @countdownTimer
@@ -102,6 +109,10 @@ class Main
     @game.load.image('white_block', 'assets/images/white_block.png')
     @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json')
     @game.load.audio('falling', ['assets/audio/falling.wav'])
+    @game.load.audio('change', ['assets/audio/change.wav'])
+    @game.load.audio('collide', ['assets/audio/collide.wav'])
+    @game.load.audio('explode', ['assets/audio/explode.wav'])
+    @game.load.audio('beepboop', ['assets/audio/beepboop.wav'])
 
   create: =>
     $(window).resize =>
@@ -148,6 +159,11 @@ class Main
         @player.animations.play('center_white', 15, true)
 
     @music = @game.add.audio('falling')
+    @changeSound = @game.add.audio('change')
+    @collideSound = @game.add.audio('collide')
+    @explodeSound = @game.add.audio('explode')
+    @beepboopSound = @game.add.audio('beepboop')
+
     @music.play('', 0, 1, true)
 
   update: =>
@@ -189,12 +205,14 @@ class Main
 
   switchColors: =>
     if !@collided
+      @changeSound.play()
+
       if @currentColor is 'white'
         @currentColor = 'black'
-        @player.animations.play('switch_to_black', 30, false)
+        @player.animations.play('switch_to_black', 35, false)
       else
         @currentColor = 'white'
-        @player.animations.play('switch_to_white', 30, false)
+        @player.animations.play('switch_to_white', 35, false)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
@@ -209,11 +227,13 @@ class Main
       @playerCollide collidee
 
   explodeBlock: (block) =>
+    @explodeSound.play()
     block.kill()
     @currentBlocksAcceleration += @blocksAccelerationIncrement
     @currentBlocksVelocity -= @currentBlocksAcceleration
 
   playerCollide: (block) =>
+    @collideSound.play()
     @collided = true
     @collideTimer = @game.time.now + 2000
     @currentBlocksVelocity = 0
