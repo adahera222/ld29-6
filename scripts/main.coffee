@@ -14,6 +14,8 @@ class Main
       $('#name').remove()
 
     socket.on 'countdown', (data) =>
+      data.message = "NEXT GAME IN"
+
       $('body').append Mustache.render(countdownTemplate, data)
 
       endTime = Math.floor((new Date).getTime()/1000) + parseInt(data.time)
@@ -26,7 +28,7 @@ class Main
         if timeLeft < 0
           timeLeft = 0
 
-        if timeLeft isnt lastTime
+        if (timeLeft isnt lastTime) and timeLeft < 5
           @beepboopSound.play()
 
         lastTime = timeLeft
@@ -53,7 +55,32 @@ class Main
       @reset()
       @playing = true
 
+      $('body').append Mustache.render(countdownTemplate, {time: data.length, message: "TIME LEFT"})
+
+      endTime = Math.floor((new Date).getTime()/1000) + parseInt(data.length)
+
+      lastTime = parseInt(data.length)
+
+      @countdownTimer = setInterval( =>
+        timeLeft = endTime - Math.floor((new Date).getTime()/1000)
+
+        if timeLeft < 0
+          timeLeft = 0
+
+        if (timeLeft isnt lastTime) and timeLeft < 10
+          @beepboopSound.play()
+
+        lastTime = timeLeft
+
+        $('#countdown-number').text(timeLeft)
+      , 500)
+
     socket.on 'endGame', (data) =>
+      $('#countdown').remove()
+
+      if @countdownTimer
+        clearInterval @countdownTimer
+
       @playing = false
 
       @blackBlocks.forEachAlive (block) =>
