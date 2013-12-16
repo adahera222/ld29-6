@@ -38,7 +38,7 @@ class Main
         @scoreboardMusic.stop()
 
       if !@fallingMusic.isPlaying
-        @fallingMusic.play()
+        @fallingMusic.play('', 0, 1, true)
 
       if @countdownTimer
         clearInterval @countdownTimer
@@ -70,7 +70,7 @@ class Main
         @fallingMusic.stop()
 
       if !@scoreboardMusic.isPlaying
-        @scoreboardMusic.play()
+        @scoreboardMusic.play('', 0, 1, true)
 
       $('body').css('overflow', 'hidden')
       $('body').append Mustache.render(scoreboardTemplate, data)
