@@ -232,6 +232,17 @@ class Main
 
     @fallingMusic.play('', 0, 1, true)
 
+    @goLeft = false
+    @goRight = false
+
+    @game.input.onDown.add =>
+      if @game.input.x < @game.world.width / 2
+        @goRight = false
+        @goLeft = true
+      else
+        @goRight = true
+        @goLeft = false
+
   update: =>
     if @playing
       horPor = @game.world.width / 50
@@ -240,10 +251,18 @@ class Main
         if @game.time.now > @collideTimer
           @collided = false
       else
-        if (@leftKey.isDown)
+        if (@leftKey.isDown or @goLeft)
+          @goLeft = false
+          @goRight = false
           @player.x -= horPor
-        else if (@rightKey.isDown)
+        else if (@rightKey.isDown or @goRight)
+          @goLeft = false
+          @goRight = false
           @player.x += horPor
+        else if @goLeft
+          @player.x -= horPor / 2
+        else if @goRight
+          @player.x += horPor / 2
 
         if @blocksFrequency > 0
           if @game.time.now > @blocksTimer
