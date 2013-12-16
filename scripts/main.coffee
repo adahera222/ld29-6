@@ -270,6 +270,8 @@ class Main
     if (block)
       block.reset(Math.random() * @game.world.width, @game.world.height + 50)
       block.width = Math.random() * (@game.world.width / 2)
+      block.width = Math.floor(block.width / 8) * 8;
+      block.width = 96 if block.width < 96
       block.body.velocity.y = @currentBlocksVelocity
       block.revive()
       block.events.onOutOfBounds.add( =>
