@@ -47,6 +47,7 @@ var countdownStartTime;
 var countdownTimer;
 var players = {};
 var referee = {};
+var state = 'waiting';
 
 io.sockets.on('connection', function(socket) {
   socket.on('newPlayer', function(playerName) {
@@ -54,22 +55,32 @@ io.sockets.on('connection', function(socket) {
       socket.emit('nameTaken');
     }
     else {
+      console.log('NEW PLAYER');
+
       players[playerName] = {name:playerName, socket:socket};
       socket.playerName = playerName;
 
       socket.emit('joined');
 
-      var tl = timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)));
+      if (state === 'inGame') {
+        var tl = timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)));
 
-      if (tl > 5) {
-        socket.emit('startGame', {seed: game.seed, length: tl});
+        if (tl > 5) {
+          console.log('SEND NEW PLAYER TO CURRENT GAME');
+
+          socket.emit('startGame', {seed: game.seed, length: tl});
+        }
       }
-      else if (!tl) {
+      else if (state === 'countingDown') {
+        console.log('SEND NEW PLAYER COUNTDOWN');
+
         var cdtl = timeLeft((parseInt(countdownStartTime) + parseInt(process.env.REST_LENGTH)));
 
         if (cdtl > 2) {
           socket.emit('countdown', {time: cdtl});
         }
+      } else if (state === 'waiting') {
+        countdown();
       }
 
       if (referee.socket) {
@@ -79,7 +90,11 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('newReferee', function(password) {
+    console.log('REFEREE ATTEMPT');
+
     if (password === process.env.REFEREE_PASSWORD) {
+      console.log('NEW REFEREE');
+
       if (referee.token) {
         socket.emit('usurped');
         referee = {};
@@ -106,28 +121,36 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('distance', function(distance) {
-    players[socket.playerName].distance = distance;
+    if (state === 'acceptingDistances') {
+      console.log('ACCEPT DISTANCE');
 
-    allIn = true;
+      players[socket.playerName].distance = distance;
 
-    for (var player in players) {
-      if (!(typeof players[player].distance !== "undefined" && players[player].distance !== null)) {
-        allIn = false;
+      allIn = true;
 
-        break;
+      for (var player in players) {
+        if (!(typeof players[player].distance !== "undefined" && players[player].distance !== null)) {
+          allIn = false;
+
+          break;
+        }
       }
-    }
 
-    if (allIn) {
-      makeScoreboard();
+      if (allIn) {
+        makeScoreboard();
+      }
     }
   });
 
   socket.on('disconnect', function() {
     if (socket.referee) {
+      console.log('REFEREE DISCONNECT');
+
       referee = {};
     }
     else {
+      console.log('PLAYER DISCONNECT');
+
       delete players[socket.playerName];
 
       if (referee.socket) {
@@ -138,6 +161,10 @@ io.sockets.on('connection', function(socket) {
 });
 
 function makeScoreboard() {
+  console.log('MAKE SCOREBOARD');
+
+  state = 'makingScoreboard';
+
   var scoreboard = {};
   var playerDistances = [];
 
@@ -156,30 +183,42 @@ function makeScoreboard() {
 }
 
 function sendScoreboard(scoreboard) {
-  for (var playerName in players) {
-    var player = players[playerName];
-    scoreboard.me = _.find(scoreboard.players, function(p) {
-      return p['name'].toString() === playerName.toString();
-    });
-    player.socket.emit('scoreboard', scoreboard);
-  }
+  if (state === 'waiting' || state === 'makingScoreboard') {
+    console.log('SEND SCOREBOARD');
 
-  countdown();
+    state = 'sendingScoreboard';
+
+    for (var playerName in players) {
+      var player = players[playerName];
+      scoreboard.me = _.find(scoreboard.players, function(p) {
+        return p['name'].toString() === playerName.toString();
+      });
+      player.socket.emit('scoreboard', scoreboard);
+    }
+
+    countdown();
+  }
 }
 
 function countdown() {
-  for (var playerName in players) {
-    var player = players[playerName];
-    player.socket.emit('countdown', {time: process.env.REST_LENGTH});
-  }
+  if (state === 'waiting' || state === 'sendingScoreboard') {
+    console.log('COUNTDOWN');
 
-  countdownStartTime = Math.floor((new Date).getTime()/1000);
+    state = 'countingDown';
 
-  countdownTimer = setInterval(function() {
-    if (!timeLeft((parseInt(countdownStartTime) + parseInt(process.env.REST_LENGTH)))) {
-      startGame();
+    for (var playerName in players) {
+      var player = players[playerName];
+      player.socket.emit('countdown', {time: process.env.REST_LENGTH});
     }
-  }, 100);
+
+    countdownStartTime = Math.floor((new Date).getTime()/1000);
+
+    countdownTimer = setInterval(function() {
+      if (!timeLeft((parseInt(countdownStartTime) + parseInt(process.env.REST_LENGTH)))) {
+        startGame();
+      }
+    }, 100);
+  }
 }
 
 function parsePlayers() {
@@ -195,47 +234,67 @@ function parsePlayers() {
 }
 
 function startGame() {
-  if (countdownTimer) {
-    clearInterval(countdownTimer);
-  }
+  if (state === 'waiting' || state === 'countingDown') {
+    console.log('START GAME');
 
-  game = {}
-  game.seed = Math.random() * 999999999;
-  game.startTime = Math.floor((new Date).getTime()/1000);
+    state = 'inGame';
 
-  for (var playerName in players) {
-    var player = players[playerName];
-    player.distance = null;
-    player.socket.emit('startGame', {seed: game.seed, length: process.env.GAME_LENGTH});
-  }
-
-  if (referee.socket) {
-    referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
-  }
-
-  gameTimer = setInterval(function() {
-    if (!timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))) {
-      endGame();
+    if (countdownTimer) {
+      clearInterval(countdownTimer);
     }
-  }, 100);
+
+    game = {}
+    game.seed = Math.random() * 999999999;
+    game.startTime = Math.floor((new Date).getTime()/1000);
+
+    for (var playerName in players) {
+      var player = players[playerName];
+      player.distance = null;
+      player.socket.emit('startGame', {seed: game.seed, length: process.env.GAME_LENGTH});
+    }
+
+    if (referee.socket) {
+      referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
+    }
+
+    gameTimer = setInterval(function() {
+      if (!timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))) {
+        endGame();
+      }
+    }, 100);
+  }
 }
 
 function endGame() {
-  if (gameTimer) {
-    clearInterval(gameTimer);
-  }
+  if (state === 'inGame') {
+    console.log('END GAME');
 
-  for (var playerName in players) {
-    var player = players[playerName];
-    player.socket.emit('endGame');
-  }
+    state = 'acceptingDistances';
 
-  if (referee.socket) {
-    referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
-  }
+    if (gameTimer) {
+      clearInterval(gameTimer);
+    }
 
-  if (_.size(players) === 0) {
-    countdown();
+    for (var playerName in players) {
+      var player = players[playerName];
+      player.socket.emit('endGame');
+    }
+
+    if (referee.socket) {
+      referee.socket.emit('state', {time: timeLeft((parseInt(game.startTime) + parseInt(process.env.GAME_LENGTH)))});
+    }
+
+    if (_.size(players) === 0) {
+      state = 'waiting';
+
+      countdown();
+    }
+
+    setTimeout(function() {
+      if (state === 'acceptingDistances') {
+        makeScoreboard();
+      }
+    }, 5000);
   }
 }
 
