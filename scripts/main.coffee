@@ -4,16 +4,16 @@ countdownTemplate = require '../templates/countdown.jade'
 
 class Main
   initialize: =>
-    socket = io.connect('/')
+    @socket = io.connect('/')
 
-    socket.on 'nameTaken', =>
+    @socket.on 'nameTaken', =>
       $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
 
-    socket.on 'joined', =>
+    @socket.on 'joined', =>
       $('#title').remove()
       $('#name').remove()
 
-    socket.on 'countdown', (data) =>
+    @socket.on 'countdown', (data) =>
       data.message = "NEXT GAME IN"
 
       $('body').append Mustache.render(countdownTemplate, data)
@@ -36,7 +36,7 @@ class Main
         $('#countdown-number').text(timeLeft)
       , 500)
 
-    socket.on 'startGame', (data) =>
+    @socket.on 'startGame', (data) =>
       if @scoreboardMusic.isPlaying
         @scoreboardMusic.stop()
 
@@ -75,7 +75,7 @@ class Main
         $('#countdown-number').text(timeLeft)
       , 500)
 
-    socket.on 'endGame', (data) =>
+    @socket.on 'endGame', (data) =>
       $('#countdown').remove()
 
       if @countdownTimer
@@ -91,9 +91,9 @@ class Main
         block.kill()
       , @
 
-      socket.emit('distance', @totalDistance);
+      @socket.emit('distance', @totalDistance);
 
-    socket.on 'scoreboard', (data) =>
+    @socket.on 'scoreboard', (data) =>
       if @fallingMusic.isPlaying
         @fallingMusic.stop()
 
@@ -111,34 +111,6 @@ class Main
     @reset()
 
     @game = new Phaser.Game($(window).width(), $(window).height(), Phaser.AUTO, 'game', {preload: @preload, create: @create, update: @update})
-
-    placeholderNames = [
-      "Sparaticus Fisticuffs"
-      "Barry Jackalope"
-      "Warsh Higgins"
-      "Two-Sky McFry Guy"
-      "Wonder \"Kid\" Pushlimiter"
-      "Guy"
-      "Smalls Twolover"
-    ]
-
-    $('body').append Mustache.render(nameTemplate, {placeholder:placeholderNames[Math.floor(Math.random() * placeholderNames.length)]})
-
-    $('#name-form').submit (event) =>
-      event.preventDefault()
-      playerName = $('#player-name').val()
-      if playerName isnt ''
-        @noNameTries = 0
-        socket.emit('newPlayer', playerName)
-      else
-        @noNameTries++
-
-        switch @noNameTries
-          when 1 then $('#name > h1').text 'Perhaps I wasn\'t clear. I need a name.'
-          when 2 then $('#name > h1').text 'Oh, come on. Just write a name.'
-          when 3 then $('#name > h1').text 'Yeeaaaa...gettin\' old. Name time.'
-          when 4 then $('#name > h1').text 'Seriously. Name.'
-          else $('#name > h1').text 'Sigh.'
 
   preload: =>
     @game.stage.disableVisibilityChange = true
@@ -242,6 +214,35 @@ class Main
       else
         @goRight = true
         @goLeft = false
+
+    placeholderNames = [
+      "Sparaticus Fisticuffs"
+      "Barry Jackalope"
+      "Warsh Higgins"
+      "Two-Sky McFry Guy"
+      "Wonder \"Kid\" Pushlimiter"
+      "Guy"
+      "Smalls Twolover"
+    ]
+
+    $('body').append Mustache.render(nameTemplate, {placeholder:placeholderNames[Math.floor(Math.random() * placeholderNames.length)]})
+
+    $('#name-form').submit (event) =>
+      event.preventDefault()
+
+      playerName = $('#player-name').val()
+      if playerName isnt ''
+        @noNameTries = 0
+        @socket.emit('newPlayer', playerName)
+      else
+        @noNameTries++
+
+        switch @noNameTries
+          when 1 then $('#name > h1').text 'Perhaps I wasn\'t clear. I need a name.'
+          when 2 then $('#name > h1').text 'Oh, come on. Just write a name.'
+          when 3 then $('#name > h1').text 'Yeeaaaa...gettin\' old. Name time.'
+          when 4 then $('#name > h1').text 'Seriously. Name.'
+          else $('#name > h1').text 'Sigh.'
 
   update: =>
     if @playing
