@@ -283,6 +283,7 @@ class Main
         @totalDistance += @currentBlocksVelocity * -1
 
       @blocksFrequency = 1500 - -@currentBlocksVelocity
+      @blocksFrequency = 1 if @blocksFrequency < 1
 
       @game.physics.collide(@player, @blackBlocks, @blackBlockCollide, null, @)
       @game.physics.collide(@player, @whiteBlocks, @whiteBlockCollide, null, @)
