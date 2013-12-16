@@ -121,6 +121,8 @@ class Main
     @game.load.image('white_block', 'assets/images/white_block.png')
     @game.load.image('black_particle', 'assets/images/black_particle.jpg')
     @game.load.image('white_particle', 'assets/images/white_particle.jpg')
+    @game.load.image('black_block_particle', 'assets/images/black_block_particle.jpg')
+    @game.load.image('white_block_particle', 'assets/images/white_block_particle.jpg')
     @game.load.atlasJSONHash('player', 'assets/images/player.png', 'assets/images/player.json')
     @game.load.audio('falling', ['assets/audio/falling.wav'])
     @game.load.audio('scoreboard', ['assets/audio/scoreboard.wav'])
@@ -161,6 +163,18 @@ class Main
     @whiteEmitter = @game.add.emitter(0, 0, 200)
     @whiteEmitter.makeParticles('white_particle')
     @whiteEmitter.gravity = -10
+
+    @blackBlockEmitter = @game.add.emitter(0, 0, 200)
+    @blackBlockEmitter.makeParticles('black_block_particle')
+    @blackBlockEmitter.minParticleSpeed.setTo(-1000, -300)
+    @blackBlockEmitter.maxParticleSpeed.setTo(1000, -400)
+    @blackBlockEmitter.gravity = -10
+
+    @whiteBlockEmitter = @game.add.emitter(0, 0, 200)
+    @whiteBlockEmitter.makeParticles('white_block_particle')
+    @whiteBlockEmitter.minParticleSpeed.setTo(-1000, -300)
+    @whiteBlockEmitter.maxParticleSpeed.setTo(1000, -400)
+    @whiteBlockEmitter.gravity = -10
 
     @player = @game.add.sprite(@game.world.centerX, @game.world.height / 4, 'player')
     @player.animations.add('center_black', [0...7])
@@ -234,29 +248,35 @@ class Main
       if @currentColor is 'white'
         @currentColor = 'black'
         @player.animations.play('switch_to_black', 35, false)
-        @blackEmitter.x = @player.x
-        @blackEmitter.y = @player.y
         setTimeout( =>
-          @blackEmitter.start(true, 2000, null, 20)
+          @blackEmitter.x = @player.x
+          @blackEmitter.y = @player.y
+          @blackEmitter.start(true, 2000, null, 35)
         , 225)
 
       else
         @currentColor = 'white'
         @player.animations.play('switch_to_white', 35, false)
-        @whiteEmitter.x = @player.x
-        @whiteEmitter.y = @player.y
         setTimeout( =>
-          @whiteEmitter.start(true, 2000, null, 20)
+          @whiteEmitter.x = @player.x
+          @whiteEmitter.y = @player.y
+          @whiteEmitter.start(true, 2000, null, 35)
         , 225)
 
   blackBlockCollide: (collider, collidee) =>
     if @currentColor is 'black'
+      @blackBlockEmitter.x = collidee.x
+      @blackBlockEmitter.y = collidee.y
+      @blackBlockEmitter.start(true, 2000, null, 35)
       @explodeBlock collidee
     else
       @playerCollide collidee
 
   whiteBlockCollide: (collider, collidee) =>
     if @currentColor is 'white'
+      @whiteBlockEmitter.x = collidee.x
+      @whiteBlockEmitter.y = collidee.y
+      @whiteBlockEmitter.start(true, 2000, null, 35)
       @explodeBlock collidee
     else
       @playerCollide collidee
