@@ -10,6 +10,7 @@ class Main
       $('#name > h1').text 'Bummer! That name\'s taken. Try again!'
 
     socket.on 'joined', =>
+      $('#title').remove()
       $('#name').remove()
 
     socket.on 'countdown', (data) =>
